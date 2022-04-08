@@ -145,6 +145,10 @@
     display: var(--followers-display);
 }
 
+#menu- {
+    display: inline;
+}
+
 .CoursePage-table>button>* {
     white-space: nowrap;
 }
