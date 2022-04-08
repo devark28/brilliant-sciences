@@ -1,0 +1,32 @@
+.Header {
+    padding: 0.5rem 2rem;
+}
+
+.Header ul {
+    padding: 0.5rem 0;
+}
+
+.Header li {
+    list-style: none;
+    color: hsl(283, 39%, 70%, 80%);
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: .03rem;
+    cursor: pointer;
+}
+
+.Header a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.Header li:hover {
+    color: hsl(0, 0%, 100%, 90%);
+}
+
+.Header .logo {
+    color: hsl(0, 0%, 100%, 90%);
+    color: hsl(283, 39%, 70%, 90%);
+    letter-spacing: .03rem;
+    align-items: flex-start
+}
