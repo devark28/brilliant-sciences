@@ -1,4 +1,4 @@
-import {Fragment} from "react"
+import {Fragment, useState} from "react"
 import {Stack, Button} from "@mui/material"
 import MenuButton from "../../components/MenuButton"
 import Footer from "../../components/Footer"
@@ -6,6 +6,7 @@ import VideoPage from "../../components/standardPages/VideoPage"
 import DescriptionPage from "../../components/standardPages/DescriptionPage"
 import AssesmentPage from "../../components/standardPages/AssesmentPage"
 export default () => {
+  const [pager, setPager] = useState(1)
   return (
     <div style={{
       display: "flex",
@@ -19,10 +20,10 @@ export default () => {
         // background: "red"
         }}>
           <h3 style={{margin: ".5rem 0 1rem 0", textAlign: "center"}}>Class</h3>
-          <MenuButton id={1} helper="{{watching: lesson 1}}" variant="contained">Video</MenuButton>
-          <MenuButton id={2} variant="">Description</MenuButton>
-          <MenuButton id={3} variant="">Reviews</MenuButton>
-          <MenuButton id={4} variant="">Assesment</MenuButton>
+          <MenuButton key={1} id={1} onClick={(id) => {setPager(id)}} variant={pager == 1 ? "contained" : ""} helper="{{watching: lesson 1}}">Video</MenuButton>
+          <MenuButton key={2} id={2} onClick={(id) => {setPager(id)}} variant={pager == 2 ? "contained" : ""}>Description</MenuButton>
+          <MenuButton key={3} id={3} onClick={(id) => {setPager(id)}} variant={pager == 3 ? "contained" : ""}>Reviews</MenuButton>
+          <MenuButton key={4} id={4} onClick={(id) => {setPager(id)}} variant={pager == 4 ? "contained" : ""}>Assesment</MenuButton>
           <div style={{display: 'flex', flex: 1}}></div>
           <Button variant="outlined">Exit Class</Button>
       </Stack>
@@ -34,7 +35,7 @@ export default () => {
         minHeight: "100vh",
         // background: "green"
         }}>
-          {renderPage(1)}
+          {renderPage(pager)}
         <Footer style={{backgroundColor: "white", margin: "2rem 0"}}/>
       </Stack>
     </div>
