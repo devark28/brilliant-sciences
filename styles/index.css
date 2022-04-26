@@ -156,3 +156,29 @@
 .InputItem-textarea .MuiOutlinedInput-root {
     padding: .3rem;
 }
+
+.expand-on-hover {
+    width: 130% !important;
+    height: 130% !important;
+    z-index: 2 !important;
+}
+
+.video-controls-hover:hover {
+    background: linear-gradient(0deg, hsl(0deg 0% 0% / 100%), transparent 100%) !important;
+}
+
+
+/* .video_player:hover .video-controls-hover {
+    margin-bottom: 0 !important;
+} */
+
+.video-controls-hover:hover {
+    margin-bottom: 0 !important;
+}
+
+.drop-container-hovered {
+    outline-style: dashed;
+    outline-width: 1px;
+    outline-offset: -0.5rem;
+    outline-color: white;
+}
