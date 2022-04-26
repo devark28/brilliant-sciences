@@ -8,7 +8,7 @@ export default ({src, content, style}) => {
         <Stack
           component="img"
           sx={{
-            width: style.maxHeight ? style.maxHeight : "8rem",
+            width: style ? (style.maxHeight ? style.maxHeight : "8rem") : "8rem",
             height: "100%",
             borderRadius: "4px"
           }}
