@@ -1,5 +1,5 @@
-import {useEffect} from "react"
-import {Stack, IconButton, Typography, Button, Select, TextField} from "@mui/material"
+import {Fragment, useState, useEffect, useRef} from "react"
+import {Stack, IconButton, Typography, Button, CircularProgress, TextField} from "@mui/material"
 import ContentCard from "../ContentCard"
 import Table from "../Table"
 import NonPropagationButton from "../NonPropagationButton"
@@ -10,11 +10,14 @@ import {
   FlagRounded as FlagIcon,
   Delete as DeleteIcon,
   ClosedCaption as SubtitleIcon,
+  Pause as PauseIcon,
 } from '@mui/icons-material';
 import InputItem from "../settingItems/InputItem"
 import SelectItem from "../settingItems/SelectItem"
 import ComponentItem from "../settingItems/ComponentItem"
 import ButtonItem from "../settingItems/ButtonItem"
+import {makeIdNotIn, extractIndex} from "../../utils"
+import Player from "react-player"
 
 const data1 = [
   [0, "Title", 'Traffic', 'Dop', "", ""],
@@ -30,6 +33,15 @@ const data2 = [
   [3, "cell study", 4, '13/3/22', <NonPropagationButton variant="outlined">Edit</NonPropagationButton>, <NonPropagationButton color="error" variant="outlined">Delete</NonPropagationButton>],
   [4, "cell study", 4, '13/3/22', <NonPropagationButton variant="outlined">Edit</NonPropagationButton>, <NonPropagationButton color="error" variant="outlined">Delete</NonPropagationButton>],
 ]
+const data3 = [
+  [1, "electricity", 'physics', '12/2/22', "pending"],
+  [2, "cell study", 'biology', '13/3/22', "pending"],
+  [3, "reactions", '-', '13/3/22', "pending"],
+  [4, "thermo dynamics", '-', '14/7/22', "pending"],
+]
+const data4 = [
+  [0, "Time", 'Title', '', ''],
+]
 
 export default () => {
   // useEffect(() => {
@@ -40,6 +52,7 @@ export default () => {
   //     styleSheet.setProperty('--followers-display', 'none')
   //   }
   // }, [])
+  const [newCoursing, setNewCoursing] = useState(true)
   
   return (
     <Stack style={{
@@ -61,19 +74,19 @@ export default () => {
               position: "absolute",
               width: "200%",
               transition: ".5s ease",
-              marginLeft: true ? "-100%" : "0%"
+              marginLeft: newCoursing ? "-100%" : "0%"
           }}>
           {/* Page 1 */}
-          <Page1/>
+          <Page1 setNewCoursing={setNewCoursing}/>
           {/* Page 2 */}
-          <Page2/>
+          <Page2 setNewCoursing={setNewCoursing}/>
         </Stack>
       </Stack>
     </Stack>
   )
 }
 
-const Page1 = () => {
+const Page1 = ({setNewCoursing}) => {
   return (
     <Stack spacing={1} style={{
       // position: "absolute",
@@ -91,18 +104,25 @@ const Page1 = () => {
         <Button variant="outlined">Published</Button>
         <Button variant="outlined">Unpublished</Button>
         <Stack sx={{flex: 1}}/>
-        <Button variant="contained">New</Button>
+        <Button variant="contained" onClick={()=>{setNewCoursing(true)}}>New</Button>
     </Stack>
     <Stack spacing={1.5} className="Courses-Page-Cards-Container">
-      <ContentCard title="Pending courses" noPad>
-        <Table data={[[0, "{{course name}}", "{{Subject}}", "{{Date}}", "{{Status}}"]]} noHeader/>
+      {/* <ContentCard title="Pending courses" noPad>
+        <Table data={[[0, data3[0][1], data3[0][2], data3[0][3], data3[0][4]]]} noHeader/>
       </ContentCard>
-      <ContentCard noPad>
-        <Table data={[[0, "{{course name}}", "{{Subject}}", "{{Date}}", "{{Status}}"]]} noHeader/>
-      </ContentCard>
-      <ContentCard noPad>
-        <Table data={[[0, "{{course name}}", "{{Subject}}", "{{Date}}", "{{Status}}"]]} noHeader/>
-      </ContentCard>
+      {
+        data3.map((datum, index) => {
+          if(index != 0){
+            return (
+              <ContentCard key={index} noPad>
+                <Table data={[[0, datum[1], datum[2], datum[3], datum[4]]]} noHeader/>
+              </ContentCard>
+            )
+          }else{
+            return <Fragment/>
+          }
+        })
+      } */}
       <ContentCard title="Published courses">
         <Table className="Published-Course-Table-data-Container" data={data1}/>
       </ContentCard>
@@ -114,13 +134,53 @@ const Page1 = () => {
   )
 }
 
-const Page2 = () => {
-  const data = [
-    [0, "Time", 'Title', ''],
-    [1, "12:32", '{{section 1}}', <IconButton color="error"><DeleteIcon/></IconButton>],
-    [2, "13:24", '{{section 2}}', <IconButton color="error"><DeleteIcon/></IconButton>],
-    [3, "16:22", '{{section 3}}', <IconButton color="error"><DeleteIcon/></IconButton>],
-  ]
+const Page2 = ({setNewCoursing}) => {
+  const [flags, setFlags] = useState(data4)
+  const [removeFlag, setRemoveFlag] = useState(0)
+  const addFlag = (flag) =>{
+    if(flag){
+      setFlags([...flags, flag])
+      // console.log(flags, flag)
+    }
+  }
+  useEffect(() => {
+    if(removeFlag != 0){
+      setFlags(flags.filter((flag, index) => (flag[0] != removeFlag)))
+      // console.log("id", removeFlag)
+      // console.log("flags", flags.filter((flag, index) => (flag[0] != removeFlag)))
+    }
+  }, [removeFlag])
+  
+  const [flagName, setFlagName] = useState("")
+
+  const [timeStamp, setTimeStamp] =  useState([0, 0, 0])
+  const [playing, setPlaying] =  useState(false)
+  const [progress, setProgress] =  useState(0)
+  const [duration, setDuration] =  useState(0)
+  const [buffering, setBuffering] =  useState(false)
+  const video_player_ref = useRef("video_player_ref")
+  const [url, setUrl] =  useState()
+  const [dragAbove, setDragAbove] =  useState(false)
+  const [ready, setReady] =  useState(false)
+  
+  const handleVideoFile = (e) => {
+    if(e.target.files[0]){
+      setReady(false)
+      const fileUrl = URL.createObjectURL(e.target.files[0])
+      setUrl(fileUrl)
+    }
+  }
+  
+  const [title, setTitle] =  useState("")
+  const [subject, setSubject] = useState(1)
+  const [subjectName, setSubjectName] = useState("")
+  const [preview, setPreview] = useState()
+  const [tags, setTags] =  useState("")
+  const [notes, setNotes] =  useState("")
+  const [comment, setComment] = useState("")
+  const [price, setPrice] =  useState(0)
+  const [enableReviews, setEnableReviews] =  useState(true)
+
   return (
     <Stack spacing={1} style={{
       // position: "absolute",
@@ -134,83 +194,325 @@ const Page2 = () => {
       // marginTop: "18.15%"
       // flex: 1
     }}>
+    <ButtonItem text spacing={2} buttons={[
+      {
+        text: "Cancel",
+        props: {
+          onClick: ()=>{setNewCoursing(false)}
+        }
+      }
+    ]}/>
     <ContentCard title="New Course Video">
       <Stack spacing={1.5} direction="row">
         <Stack flex={1}>
           <Stack spacing={2} direction="row" justifyContent="space-evenly" alignItems="center">
-            <IconButton><SkipBackIcon/></IconButton>
-            <Typography>00:00</Typography>
-            <IconButton><SkipNextIcon/></IconButton>
-            <IconButton><PlayIcon/></IconButton>
-            <IconButton><FlagIcon/></IconButton>
+            <IconButton disabled={!ready} draggable={true} onClick={(e) => {
+              if(url && ready){
+                const hours = Math.trunc(duration / 3600)
+                const minutes = Math.trunc(((duration / 3600) - hours) * 60)
+                const seconds = Math.trunc(((((duration / 3600) - hours) * 60) - minutes) * 60)
+
+                const newProgress = parseFloat(progress)-((hours  + minutes + seconds) / 3600)
+
+                video_player_ref.current.seekTo(((newProgress/100) * duration).toFixed(5), "seconds")
+                setProgress(newProgress)
+                // console.log("prog", progress)
+              }
+            }}
+             onDoubleClick={(e) => {
+              if(url && ready){
+                const hours = Math.trunc(duration / 3600)
+                const minutes = Math.trunc(((duration / 3600) - hours) * 60)
+                const seconds = Math.trunc(((((duration / 3600) - hours) * 60) - minutes) * 60)
+
+                const newProgress = parseFloat(progress)-(((hours  + minutes + seconds) / 3600) * (10 * e.detail))
+
+                video_player_ref.current.seekTo(((newProgress/100) * duration).toFixed(5), "seconds")
+                setProgress(newProgress)
+                // console.log("prog", progress)
+              }
+            }}><SkipBackIcon/></IconButton>
+            <Typography disabled={!ready}>
+              {timeStamp[0] > 0 ? `${timeStamp[0] < 10 ? `0${timeStamp[0]}` : timeStamp[0]}:` : ""}
+              {timeStamp[1] < 10 ? `0${timeStamp[1]}` : timeStamp[1]}:{timeStamp[2] < 10 ? `0${timeStamp[2]}` : timeStamp[2]}
+            </Typography>
+            <IconButton disabled={!ready} draggable={true} onClick={(e) => {
+              if(url && ready){
+                const hours = Math.trunc(duration / 3600)
+                const minutes = Math.trunc(((duration / 3600) - hours) * 60)
+                const seconds = Math.trunc(((((duration / 3600) - hours) * 60) - minutes) * 60)
+          
+                const newProgress = parseFloat(progress)+((hours  + minutes + seconds) / 3600)
+                
+                video_player_ref.current.seekTo(((newProgress/100) * duration).toFixed(5), "seconds")
+                setProgress(newProgress)
+                // console.log("prog", progress)
+              }
+            }}
+             onDoubleClick={(e) => {
+              if(url && ready){
+                const hours = Math.trunc(duration / 3600)
+                const minutes = Math.trunc(((duration / 3600) - hours) * 60)
+                const seconds = Math.trunc(((((duration / 3600) - hours) * 60) - minutes) * 60)
+          
+                const newProgress = parseFloat(progress)+(((hours  + minutes + seconds) / 3600) * (10 * e.detail))
+                
+                video_player_ref.current.seekTo(((newProgress/100) * duration).toFixed(5), "seconds")
+                setProgress(newProgress)
+                // console.log("prog", progress)
+              }
+            }}><SkipNextIcon/></IconButton>
+            <IconButton disabled={!ready} onClick={() => {
+              if(url && ready){
+                setPlaying(!playing)
+              }
+            }}>
+              {
+                playing
+                ? <PauseIcon/>
+                : <PlayIcon/>
+              }
+            </IconButton>
+            {
+              !ready
+              ? <Fragment/>
+              : <TextField disabled={!ready} className="InputItem-input" value={flagName} onChange={(e)=>{setFlagName(e.target.value)}}/>
+            }
+            <IconButton disabled={!ready} onMouseUp={(e)=>{
+              const id = makeIdNotIn([...extractIndex(flags), removeFlag])
+              e.stopPropagation();
+              const time_stamp = String(timeStamp[0] > 0 ? `${timeStamp[0] < 10 ? `0${timeStamp[0]}` : timeStamp[0]}:` : "")+String(timeStamp[1] < 10 ? `0${timeStamp[1]}` : `${timeStamp[1]}`)+String(`:${timeStamp[2] < 10 ? `0${timeStamp[2]}` : timeStamp[2]}`)
+              if(String(flagName).trim() && url && ready){
+                const time_stamps = extractIndex(flags, 1)
+                if(!time_stamps.includes(time_stamp)){
+                  addFlag([
+                    id,
+                    time_stamp,
+                    flagName,
+                    <IconButton color="error" onClick={(e)=>{
+                      e.stopPropagation();
+                      setRemoveFlag(id)
+                    }}><DeleteIcon/></IconButton>,
+                    timeStamp
+                  ])
+                }
+              }
+            }}><FlagIcon/></IconButton>
+            {
+              url && !ready
+              ? <CircularProgress size={18}/>
+              : <Fragment/>
+            }
           </Stack>
           <ContentCard innerStyle={{
             maxHeight: "15rem",
             overflow: "auto"
           }}>
-            <Table className="CoursePage-table" data={data} hasHelper/>
+            <Table className="CoursePage-table" data={flags} hasHelper attributes onClick={(index)=>{
+              console.log("click",index , flags[index])
+            }}/>
           </ContentCard>
         </Stack>
         <Stack flex={1}>
-          <ContentCard noPad>
-            <Stack style={{background: "black", borderRadius: "4px", height: "15rem", width: "100%", color: "white"}} justifyContent="center" alignItems="center">
-              Drag and Drop a video
-              <br/><a href="#">choose a file</a>
+          <ContentCard innerStyle={{borderStyle: "none"}} noPad>
+            <Stack className={ dragAbove ? "drop-container-hovered" : ""}
+            onDragEnter={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              setDragAbove(true)
+            }}
+            onDragOver={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              setDragAbove(true)
+            }}
+            onDragLeave={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              setDragAbove(false)
+            }}
+            onDrop={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              setDragAbove(false)
+              setReady(false)
+              const fileUrl = URL.createObjectURL(e.dataTransfer.files[0])
+              setUrl(fileUrl)
+            }}
+            onClick={(e) => {
+              e.stopPropagation()
+              if(url && ready){
+                setPlaying(!playing)
+              }
+            }}
+            style={{background: "black", borderRadius: "5px", height: "15rem", width: "100%", color: "white"}} justifyContent="center" alignItems="center">
+              {/* Video Player */}
+              {
+                !url
+                ? (
+                  <Fragment>
+                    <input id="video-file" type="file" accept=".mp4" hidden onChange={handleVideoFile}/>
+                    Drag and Drop a video File
+                    <Typography component="label" htmlFor="video-file" color="primary" style={{textDecoration: "underline", fontSize: ".8rem", fontWeight: 200, letterSpacing: ".03rem", cursor: "pointer"}}>choose a file</Typography>
+                  </Fragment>
+                )
+                : (
+                  <Player
+                    ref={video_player_ref}
+                    style={{
+                      display: "flex",
+                      flex: 1,
+                      pointerEvents: "none"
+                    }}
+                    // url="https://youtu.be/bwmSjveL3Lc"
+                    // url="/spykids4.mp4"
+                    url={url}
+                    onReady={() => {
+                      setReady(true)
+                      // console.log(video_player_ref.current.getDuration())
+                      setDuration(video_player_ref.current.getDuration())
+                      // setPreview(true)
+                    }}
+                    pip={false}
+                    config={{ file: { attributes: { controlsList: 'nodownload', disablePictureInPicture: true, preload: "none" } } }}
+                    onStart={()=>{
+                      // setPlaying(false)
+                      // setDuration(video_player_ref.current.getDuration())
+                      // video_player_ref.current.seekTo(time_stamp, "seconds")
+                    }}
+                    // onPlay={()=>{console.log("playing")}}
+                    // onPause={()=>console.log("pausing")}
+                    onProgress={(state)=>{
+                      // (state.played * 100).toFixed(5)
+                      setProgress((state.played * 100).toFixed(5))
+                      // console.log("2", (state.played * 100).toFixed(5))
+                      // console.log(state.played)
+                      // console.log(video_player_ref.current.getCurrentTime())
+                      // console.log(state.playedSeconds)
+                      // console.log("3", state.played)
+                      // setProgress(state.playedSeconds)
+                      // set_time_stamp(state.playedSeconds)
+                      const time = state.playedSeconds
+                      const hours = Math.trunc(time / 3600)
+                      const minutes = Math.trunc(((time / 3600) - hours) * 60)
+                      const seconds = Math.trunc(((((time / 3600) - hours) * 60) - minutes) * 60)
+                      setTimeStamp([hours, minutes, seconds])
+                      // console.log("time", hours, minutes, seconds)
+                    }}
+                    // onEnded={()=>{dispatch(nextModule())}}
+                    onBuffer={()=>{
+                      setBuffering(true)
+                    }}
+                    onBufferEnd={()=>{
+                      setBuffering(false)
+                    }}
+                    width='100%'
+                    height='100%'
+                    // controls={true}
+                    // wrapper={Fragment}
+                    playing={playing}
+                    muted={false}
+                    volume={1}/>
+                )
+              }
             </Stack>
           </ContentCard>
           <Button component="label" variant="outlined" startIcon={<SubtitleIcon/>}>
             <Typography>Add subtitles</Typography>
-            <input type="file" accept=".srt" hidden/>
+            <input type="file" accept=".srt" hidden onChange={(e) => {
+              setSubtitle(e.target.value)
+            }}/>
           </Button>
         </Stack>
       </Stack>
     </ContentCard>
     <ContentCard title="New Course Info">
       <Stack spacing={1}>
-        <InputItem text="Title"/>
+        <InputItem text="Title" inputProps={{
+          value: title,
+          onChange: (e)=>{
+            setTitle(e.target.value)
+          }
+        }}/>
         <SelectItem text="Subject" options={[
             "Mathematics",
             "Physics",
             "Chemistry",
             "Biology"
-        ]}/>
+        ]}
+        value={subject}
+        onChange={(value, name) => {
+          setSubject(value)
+          setSubjectName(name)
+        }}
+        />
         <ComponentItem text="Preview file" component={
           <Button component="label" variant="outlined">
-            <Typography>Choose a file</Typography>
-            <input type="file" accept=".mp4" hidden/>
+            <Typography>Choose a preview file</Typography>
+            <input type="file" accept=".mp4" hidden onChange={(e) => {
+              if(e.target.files[0]){
+                const fileUrl = URL.createObjectURL(e.target.files[0])
+                setPreview(fileUrl)
+              }
+            }}/>
           </Button>
         }/>
-        <ComponentItem text="Video file" component={
+        {/* <ComponentItem text="Video file" component={
           <Button component="label" variant="outlined">
             <Typography>Choose a file</Typography>
             <input type="file" accept=".mp4" hidden/>
           </Button>
-        }/>
-        <InputItem text="Tags"/>
+        }/> */}
+        <InputItem text="Tags" inputProps={{
+          value: tags,
+          onChange: (e)=>{
+            setTags(e.target.value)
+          }
+        }}/>
         <ComponentItem text="Notes" component={
           <Button component="label" variant="outlined">
-            <Typography>Choose a file</Typography>
-            <input type="file" accept=".pdf" hidden/>
+            <Typography>Choose a notes file</Typography>
+            <input type="file" accept=".txt" hidden onChange={async (e) => {
+              if(e.target.files[0]){
+                const fileUrl = URL.createObjectURL(e.target.files[0])
+                setNotes(await (await fetch(fileUrl)).text())
+                // console.log(await (await fetch(fileUrl)).text())
+              }
+            }}/>
           </Button>
         }/>
         <ComponentItem className="InputItem-textarea" text="Comment" component={
           <TextField multiline maxRows={3} variant="outlined" sx={{
             padding: 0
-          }}></TextField>
+          }}
+          value={comment}
+          onChange={(e)=>{
+            setComment(e.target.value)
+          }}/>
         }/>
-        <ComponentItem text="Date of publication" component={
+        {/* <ComponentItem text="Date of publication" component={
           <Button component="label" variant="outlined">
             <Typography>19/1/2050</Typography>
-            <input type="date" hidden/>
+            <input type="date" style={{width: 0, height: 0, borderStyle: "none"}}/>
           </Button>
-        }/>
-        <InputItem text="Price" unit="Rwf"/>
-        <ButtonItem text="allow reviews" checkBox checked/>
-        <ButtonItem text buttons={[
+        }/> */}
+        <InputItem text="Price" unit="Rwf" inputProps={{
+          value: price,
+          onChange: (e)=>{
+            setPrice(e.target.value)
+          }
+        }}/>
+        <ButtonItem text="allow reviews" checkBox checked={enableReviews} onChecked={(value) => {
+          setEnableReviews(value == true)
+        }}/>
+        <ButtonItem text spacing={2} buttons={[
           {
             text: "Publish",
             props: {
-              variant: "contained"
+              variant: "contained",
+              onClick: ()=>{
+                // TODO: Publish
+              }
             }
           }
         ]}/>
