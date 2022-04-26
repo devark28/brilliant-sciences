@@ -19,3 +19,48 @@ export const contains = (array, value) => {
     }
     return contained;
 }
+
+export const makeId = (length = 15) => {
+  let output = '';
+  let scope = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let scope_size = scope.length;
+  for ( let i = 0; i < length; i++ ) {
+    output += scope.charAt(Math.floor(Math.random() * scope_size));
+  }
+  return output;
+}
+
+export const maxWords = (text, length = 15) => {
+  let output = String();
+  const regex = new RegExp(`^(.{${length}}[^\s]*).*`)
+  output = text.replace(regex, "$1")
+  output += "..."
+  return output;
+}
+
+export const createTimeStamp = (time) => {
+  let output = String();
+  return output;
+}
+
+export const makeIdNotIn = (list = Array(), length = 5) => {
+  let output = '';
+  let scope = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let scope_size = scope.length;
+  do{
+    for ( let i = 0; i < length; i++ ) {
+      output += scope.charAt(Math.floor(Math.random() * scope_size));
+    }
+  }while(list.includes(output))
+  return output;
+}
+
+export const extractIndex = (array = Array(), index = 0) => {
+  let output = Array()
+  array.forEach((element) => {
+    if(index > -1 && index < element.length){
+      output.push(element[index])
+    }
+  })
+  return output
+}
