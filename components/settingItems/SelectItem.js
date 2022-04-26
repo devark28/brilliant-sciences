@@ -1,17 +1,19 @@
+import {useState} from "react"
 import {Select, Stack, MenuItem} from "@mui/material"
 
-export default ({text, options}) => {
+export default ({text, options, value, onChange}) => {
+  const [val, setValue] = useState(value)
   return (
     <Stack id="preferred-course-select-label" justifyContent="space-between" direction="row">
       <span>{text}</span>
-      <Select labelId="preferred-course-select-label" value={1} style={{
+      <Select labelId="preferred-course-select-label" value={val} style={{
         minWidth: "30%",
         height: "2rem"
       }}>
         {
           options && (
             options.map((opt, index) => (
-              <MenuItem value={index+1}>{opt}</MenuItem>
+              <MenuItem value={index+1} onClick={()=>{setValue(index+1);try{onChange(opt)}catch(e){try{onChange(opt, index+1)}catch(e){}}}}>{opt}</MenuItem>
             ))
           )
         }
