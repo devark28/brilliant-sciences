@@ -1,10 +1,11 @@
-import {Fragment} from "react"
+import {Fragment, useState} from "react"
 import {Stack, Button} from "@mui/material"
 import MenuButton from "./MenuButton"
 import Footer from "./Footer"
 import ProfilePage from "./standardPages/ProfilePage"
 import PerformancePage from "./standardPages/PerformancePage"
 export default () => {
+  const [pager, setPager] = useState(1)
   return (
     <div style={{
       display: "flex",
@@ -18,9 +19,9 @@ export default () => {
         // background: "red"
         }}>
           <h3 style={{margin: ".5rem 0 1rem 0", textAlign: "center"}}>Settings</h3>
-          <MenuButton id={1} helper="{{username}}" variant="">Profile</MenuButton>
-          <MenuButton id={2} helper="{{days}} to expire" variant="">Subscription</MenuButton>
-          <MenuButton id={3} helper="{{Good/Fair/Improve}}" variant="contained">Performance</MenuButton>
+          <MenuButton key={1} id={1} onClick={(id) => {setPager(id)}} variant={pager == 1 ? "contained" : ""}>Profile</MenuButton>
+          <MenuButton key={2} id={2} onClick={(id) => {setPager(id)}} variant={pager == 2 ? "contained" : ""} helper="{{days}} to expire">Subscription</MenuButton>
+          <MenuButton key={3} id={3} onClick={(id) => {setPager(id)}} variant={pager == 3 ? "contained" : ""} helper="{{Good/Fair/Improve}}">Performance</MenuButton>
           <div style={{display: 'flex', flex: 1}}></div>
           <Button variant="outlined">Log Out</Button>
       </Stack>
@@ -32,7 +33,7 @@ export default () => {
         minHeight: "100vh",
         // background: "green"
         }}>
-          {renderPage(3)}
+          {renderPage(pager)}
         {/* <Footer style={{backgroundColor: "white", margin: "2rem 0"}}/> */}
       </Stack>
     </div>
