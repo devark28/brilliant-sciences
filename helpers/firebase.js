@@ -1,9 +1,6 @@
 import { initializeApp, getApps, getApp } from "firebase/app"
 import "firebase/auth"
 import "firebase/firestore"
-import dotenv from "dotenv"
-
-dotenv.config()
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_apiKey,
@@ -20,7 +17,6 @@ export const app = () => {
   if(!getApps().length){
     return initializeApp(firebaseConfig)
   } else {
-    getApp()
+    return getApp()
   }
-  console.log("There")
 }
